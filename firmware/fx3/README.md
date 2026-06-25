@@ -3,9 +3,16 @@
 构建 `firmware/fx3` 下的 bootloader / firmware 需要 **Cypress 官方提供的 ARM 交叉工具链 + EZ-USB FX3 SDK**。
 本文档记录在 **Linux x86_64** 上把环境跑通的完整步骤，重点是几个容易踩的坑。
 
-代码复制自[UHD v4.10.0.0](https://github.com/EttusResearch/uhd/tree/v4.10.0.0)
+代码复制自[UHD v4.10.0.0](https://github.com/EttusResearch/uhd/tree/v4.10.0.0)，在此基础上做仿制板差异修改。
 
-bootloader --- 完全一致
+### 相对 UHD 的改动
+
+**bootloader** —— 小修改如下：
+
+1. 支持读写EEPROM元信息。
+2. EEPROM未初始化的时候默认为`2500:0020`，而非 UHD 原版的 Cypress `04b4:00f0`。
+
+**firmware（主固件）/ common** —— 从 UHD 拷贝，仅在仿制板与官方 B200/B210 有差异处做针对性修改，改动处就地标注原因。
 
 ---
 
