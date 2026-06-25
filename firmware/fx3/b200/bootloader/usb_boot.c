@@ -13,6 +13,7 @@
 #include "common_helpers.h"
 #include "common_descriptors.h"
 #include "usb_descriptors.h"
+#include "mb_eeprom.h"
 
 typedef enum
 {
@@ -592,6 +593,13 @@ void vendorCmdHandler (void)
             CyFx3BootUsbStall (0, CyTrue, CyFalse);
         }
 
+        return;
+    }
+
+    /* mb_eeprom 读写命令 (0xBB/0xBA) 交给独立模块处理；命中即由它完成应答/stall。
+       wIndex = EEPROM 字节地址，wLength = 长度，gpUSBData 作数据中转缓冲。 */
+    if (mb_eeprom_vendor_cmd(bReq, dir, (gEP0.bIdx1 << 8) | gEP0.bIdx0,
+                             len, gpUSBData)) {
         return;
     }
 

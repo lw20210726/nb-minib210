@@ -23,7 +23,7 @@ else
 	APP_ASM_SOURCE = cyfx_gcc_startup.S
 endif
 
-APP_SOURCE = main.c usb_boot.c usb_descriptors.c ../common/common_descriptors.c ../common/common_helpers.c
+APP_SOURCE = main.c usb_boot.c mb_eeprom.c usb_descriptors.c ../common/common_descriptors.c ../common/common_helpers.c
 
 INCFLAGS = -I../common
 
