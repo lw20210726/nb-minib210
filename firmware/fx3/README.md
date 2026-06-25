@@ -7,18 +7,18 @@
 
 ### 相对 UHD 的改动
 
-**bootloader** —— 小修改如下：
+**bootloader** —— 其实用UHD官方版本即可，下面小修改增加易用性：
 
 1. 支持读写EEPROM元信息。
 2. EEPROM未初始化的时候默认为`2500:0020`，而非 UHD 原版的 Cypress `04b4:00f0`。
 
-**firmware（主固件）/ common** —— 从 UHD 拷贝，仅在仿制板与官方 B200/B210 有差异处做针对性修改，改动处就地标注原因。
+**firmware（主固件）/ common** —— 目前没有任何修改，可以直接用官方的firmware
 
 ---
 
 ## 1. 准备 SDK 与工具链
 
-从 Cypress 的 EZ-USB FX3 SDK（`ezusbfx3sdk_1.3.5_Linux_*.tar.gz`）中解压出两样东西：
+从 Cypress 的 [EZ-USB FX3 SDK](https://softwaretools.infineon.com/tools/com.ifx.tb.tool.ezusbfx3sdk)  下载文件解压出两样东西：
 
 - `arm-2013.11/` —— Sourcery CodeBench Lite ARM 交叉工具链（gcc 4.8.1）
 - `cyfx3sdk/`   —— FX3 固件库、链接脚本、构建配置（`fw_lib/`、`fw_build/`、`util/` 等）
