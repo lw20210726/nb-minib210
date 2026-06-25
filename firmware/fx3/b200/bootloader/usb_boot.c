@@ -11,6 +11,7 @@
 #include "cyfx3i2c.h"
 
 #include "common_helpers.h"
+#include "common_const.h"
 #include "common_descriptors.h"
 #include "usb_descriptors.h"
 #include "mb_eeprom.h"
@@ -768,9 +769,18 @@ void usbBoot()
         .dmaTimeout = 0xFFFF};
     CyFx3BootI2cSetConfig(&i2cCfg);
 
-    /* Retrieve VID and PID from EEPROM */
-    const uint16_t vid = get_vid(&eeprom_read);
-    const uint16_t pid = get_pid(&eeprom_read);
+    /* 取枚举用 VID/PID：mb_eeprom 已编程(可读)就尊重其值；未编程/复位(不可读)时
+       不走 common 的 Cypress 回退(04b4:00f0——不在 UHD udev 规则内、烧写要 root)，
+       改用 Ettus 默认 2500:0020，使空片/复位后的板也免 sudo 即可被 nb_eeprom 写。
+       （本工程写入恒为整块原子写，magic 有效即字段有效，故只看可读性即可。） */
+    uint16_t vid, pid;
+    if (eeprom_is_readable(&eeprom_read)) {
+        vid = get_vid(&eeprom_read);
+        pid = get_pid(&eeprom_read);
+    } else {
+        vid = VID_ETTUS_RESEARCH;
+        pid = PID_ETTUS_B200_B210;
+    }
 
     /* Power down I2C */
     CyFx3BootI2cDeInit();
