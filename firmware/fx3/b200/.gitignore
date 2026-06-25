@@ -1,0 +1,14 @@
+lib
+!common
+*.o
+*.elf
+*.hex
+*.map
+*.img
+
+# 构建时从 Cypress SDK 拷入的中间文件（make 每次自动重新生成）
+cyfxtx.c
+cyfx_startup.S
+cyfx_gcc_startup.S
+# bootloader 现编的 elf2img 小工具
+bootloader/elf2img
