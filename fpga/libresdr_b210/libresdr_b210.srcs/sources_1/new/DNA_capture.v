@@ -28,10 +28,10 @@ module DNA_capture(
    );
 
     always@(posedge sys_clk)
-    begin
-        if(!dna_rdy)
-            dna_cnt <= 8'd0;
-        else if(dna_cnt < 8'd103)
+    if(dna_rdy)begin
+        if(dna_cnt == 7'd103)
+            dna_cnt <= dna_cnt;
+        else 
             dna_cnt <= dna_cnt + 1'b1;
     end
 
@@ -42,13 +42,12 @@ module DNA_capture(
 
     always @ (posedge sys_clk)
     begin
-        if(!dna_rdy)
-            dna_reg <= 57'd0;
-        else if(dna_shift)
-            dna_reg[56:0] <= {dna_reg[55:0],dna_dout};
+        if(dna_shift)begin
+        dna_reg[56:0] <= {dna_reg[55:0],dna_dout};
+        end
     end
 
     assign dna_data = dna_reg;
-    assign dna_valid = dna_rdy && (dna_cnt == (8'd45+8'd57-1));
+    assign dna_valid = dna_cnt == (8'd45+8'd57-1);
 
 endmodule

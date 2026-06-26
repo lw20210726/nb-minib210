@@ -12,6 +12,7 @@
 *.runs/
 *.sim/
 .Xil/
+*.dcp
 
 # --- 日志 / 日志备份 / 启动脚本记录 ---
 vivado*.jou

@@ -20,7 +20,7 @@ module DACx311_auto_spi
 );
   // initialize ldat to 0, thus forcing
   // a reload on init.
-  reg [15:0] ldat = 16'd0;
+  reg [15:0] ldat = 16'h7ff;
   //wire upd = (dat != ldat); // new data present, need to update hw
   
    
@@ -65,7 +65,7 @@ module DACx311_auto_spi
   localparam SYNCL=5'b00010; // assert sync_n low
   localparam SYNCH=5'b10011; // return sync_n high
 
-   wire upd = (dat != ldat);
+   wire upd = 1'b1&(scnt==READY);
     
   assign cena = upd | scnt != READY;
 

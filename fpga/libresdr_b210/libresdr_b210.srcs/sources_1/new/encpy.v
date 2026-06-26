@@ -33,39 +33,29 @@ output reg status=0
 wire [56:0] dna_data;
 wire        dna_valid;
 
-reg dna_valid_r = 1'b0;
-reg ld = 1'b0;
+reg dna_valid_r;
+reg ld;
 wire aes_done;
 reg aes_done_reg = 1'b0;
 wire [127:0] ency_data,check_data;
-reg [127:0] ency_data_reg = 128'd0;
+reg [127:0] ency_data_reg;
 wire eeprom_done;
 
 
 always@(posedge clk) begin
-    if (reset) begin
-        dna_valid_r <= 1'b0;
-        ld <= 1'b0;
-        aes_done_reg <= 1'b0;
-        ency_data_reg <= 128'd0;
+    dna_valid_r <= dna_valid;
+    if(eeprom_done ==1'b1 && (ency_data_reg == check_data)) 
+        status <= 1'b1;
+     else
         status <= 1'b0;
-    end else begin
-        dna_valid_r <= dna_valid;
-
-        if (eeprom_done == 1'b1 && (ency_data_reg == check_data))
-            status <= 1'b1;
-        else
-            status <= 1'b0;
-
-        if (dna_valid == 1'b1 && dna_valid_r == 1'b0)
-            ld <= 1'b1;
-        else
-            ld <= 1'b0;
-
-        if (aes_done == 1'b1) begin
-            aes_done_reg <= 1'b1;
-            ency_data_reg <= ency_data;
-        end
+    if(dna_valid==1'b1&&dna_valid_r==1'b0)
+        ld <=1'b1;
+     else
+        ld <=1'b0;
+        
+    if (aes_done == 1'b1) begin
+        aes_done_reg <= 1'b1;
+        ency_data_reg <= ency_data;
     end
 end
    
