@@ -62,8 +62,6 @@ module libresdr_b210 (
         input  wire             CLKIN_10MHz     ,
         output wire             REF_CLK_REQ     ,
 
-        output wire             REF_LOCKED_inv      ,
-
 //        output wire             GPS_nRST        ,
 //        output wire             GPS_UART_TX     ,
 //        input  wire             GPS_UART_RX     ,
@@ -78,9 +76,6 @@ module libresdr_b210 (
         output wire             CLK_40M_DAC_nSYNC,
         output wire             CLK_40M_DAC_SCLK ,
         output wire             CLK_40M_DAC_DIN ,
-        //EEPROM 
-        output wire             scl,
-        inout  wire             sda,
 
         // RF Hardware Control
         output  wire            SFDX1_RX,
@@ -207,21 +202,6 @@ module libresdr_b210 (
       .O(clk10M_w), // 1-bit output: Clock output
       .I(CLKIN_10MHz)  // 1-bit input: Clock input
    );
-//encpy FPGA bit
-
-wire  status;
-
-encpy encpy_i(
-    .clk    (  int_40mhz    ),
-    .reset  (  reset_global ),
-    .wr_en  (  1'b1         ),
-    .scl    (  scl          ),
-    .sda    (  sda          ),
-    .status (  status       )
-   );
-   
-
-    
     clk_wiz_0 clk_wiz_0_10M_detect 
     (
   // Clock out ports
@@ -489,7 +469,6 @@ b205_ref_pll(
     );
 
 
-        assign             REF_LOCKED_inv       =   ~status; //ency check ok
         
         
         

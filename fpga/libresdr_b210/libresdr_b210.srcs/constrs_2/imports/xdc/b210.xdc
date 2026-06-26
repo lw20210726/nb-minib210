@@ -15,8 +15,6 @@ set_property -dict {PACKAGE_PIN C18 IOSTANDARD LVCMOS33} [get_ports CLK_40MHz_FP
 set_property -dict {PACKAGE_PIN D17 IOSTANDARD LVCMOS33} [get_ports CLKIN_10MHz]
 set_property -dict {PACKAGE_PIN A14 IOSTANDARD LVCMOS33} [get_ports REF_CLK_REQ]
 
-set_property -dict {PACKAGE_PIN AB17 IOSTANDARD LVCMOS33} [get_ports REF_LOCKED_inv]
-
 # #### FX3 Lines ##############################################################
 # GPIF Data lines
 set_property -dict {PACKAGE_PIN C2 IOSTANDARD LVCMOS18 SLEW SLOW} [get_ports {GPIF_D[0]}]
@@ -181,8 +179,3 @@ set_false_path -from [get_clocks CAT_DCLK_P] -to [get_clocks -of_objects [get_pi
 set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT1]] -to [get_clocks CAT_DCLK_P]
 set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT2]] -to [get_clocks CAT_DCLK_P]
 set_false_path -from [get_clocks -of_objects [get_pins u_libresdr_b210_io/BUFR_inst/O]] -to [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT1]]
-
-set_property PACKAGE_PIN W22 [get_ports scl]
-set_property PACKAGE_PIN W21 [get_ports sda]
-set_property IOSTANDARD LVCMOS18 [get_ports scl]
-set_property IOSTANDARD LVCMOS18 [get_ports sda]
