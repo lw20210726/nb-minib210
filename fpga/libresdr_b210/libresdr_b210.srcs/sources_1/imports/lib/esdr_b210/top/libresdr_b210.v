@@ -62,12 +62,6 @@ module libresdr_b210 (
         input  wire             CLKIN_10MHz     ,
         output wire             REF_CLK_REQ     ,
 
-//        output wire             GPS_nRST        ,
-//        output wire             GPS_UART_TX     ,
-//        input  wire             GPS_UART_RX     ,
-
-        
-        
        `ifdef TARGET_B210
         inout wire [7:0] 	 fp_gpio,
         `endif
