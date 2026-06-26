@@ -15,7 +15,6 @@ set_property -dict {PACKAGE_PIN C18 IOSTANDARD LVCMOS33} [get_ports CLK_40MHz_FP
 set_property -dict {PACKAGE_PIN D17 IOSTANDARD LVCMOS33} [get_ports CLKIN_10MHz]
 set_property -dict {PACKAGE_PIN A14 IOSTANDARD LVCMOS33} [get_ports REF_CLK_REQ]
 
-set_property -dict {PACKAGE_PIN W10 IOSTANDARD LVCMOS33} [get_ports PPS_LED_inv]
 set_property -dict {PACKAGE_PIN AB17 IOSTANDARD LVCMOS33} [get_ports REF_LOCKED_inv]
 
 # #### FX3 Lines ##############################################################
@@ -91,25 +90,6 @@ set_property -dict {PACKAGE_PIN AA13 IOSTANDARD LVCMOS33 SLEW SLOW} [get_ports {
 set_property -dict {PACKAGE_PIN AB13 IOSTANDARD LVCMOS33 SLEW SLOW} [get_ports {fp_gpio[7]}]
 
 
-# LED
-set_property -dict {PACKAGE_PIN B15 IOSTANDARD LVCMOS33} [get_ports LED_RX1_inv]
-set_property -dict {PACKAGE_PIN E19 IOSTANDARD LVCMOS33} [get_ports LED_RX2_inv]
-set_property -dict {PACKAGE_PIN A15 IOSTANDARD LVCMOS33} [get_ports LED_TXRX1_TX_inv]
-set_property -dict {PACKAGE_PIN D20 IOSTANDARD LVCMOS33} [get_ports LED_TXRX2_RX_inv]
-set_property -dict {PACKAGE_PIN B13 IOSTANDARD LVCMOS33} [get_ports LED_TXRX1_RX_inv]
-set_property -dict {PACKAGE_PIN C20 IOSTANDARD LVCMOS33} [get_ports LED_TXRX2_TX_inv]
-
-set_property -dict {PACKAGE_PIN B16 IOSTANDARD LVCMOS33} [get_ports LED_RX1_R]
-set_property -dict {PACKAGE_PIN D15 IOSTANDARD LVCMOS33} [get_ports LED_RX1_B]
-
-set_property -dict {PACKAGE_PIN D19 IOSTANDARD LVCMOS33} [get_ports LED_RX2_R]
-set_property -dict {PACKAGE_PIN C19 IOSTANDARD LVCMOS33} [get_ports LED_RX2_B]
-
-set_property -dict {PACKAGE_PIN C13 IOSTANDARD LVCMOS33} [get_ports LED_TXRX1_B]
-set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports LED_TXRX2_B]
-
-set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports LED_USER_R]
-set_property -dict {PACKAGE_PIN W11 IOSTANDARD LVCMOS33} [get_ports REF_IS_10M_detect_inv]
 
 
 

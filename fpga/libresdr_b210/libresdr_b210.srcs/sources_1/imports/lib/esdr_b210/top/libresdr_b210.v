@@ -62,33 +62,12 @@ module libresdr_b210 (
         input  wire             CLKIN_10MHz     ,
         output wire             REF_CLK_REQ     ,
 
-        output wire             PPS_LED_inv         ,
         output wire             REF_LOCKED_inv      ,
-        output wire             REF_IS_10M_detect_inv   ,           
 
 //        output wire             GPS_nRST        ,
 //        output wire             GPS_UART_TX     ,
 //        input  wire             GPS_UART_RX     ,
 
-   // LEDS
-        output  wire LED_RX1_inv,
-        output 	wire LED_RX2_inv,
-        output 	wire LED_TXRX1_RX_inv,
-        output 	wire LED_TXRX1_TX_inv,
-        output 	wire LED_TXRX2_RX_inv,
-        output 	wire LED_TXRX2_TX_inv,
-        
-        output  wire LED_RX1_R,
-        output  wire LED_RX1_B,
-        
-        output  wire LED_RX2_R,
-        output  wire LED_RX2_B,
-        
-        output 	wire LED_TXRX1_B,
-        output 	wire LED_TXRX2_B,
-        
-        output  wire LED_USER_R,
-        //output  wire LED_USER_B,
         
         
        `ifdef TARGET_B210
@@ -121,8 +100,6 @@ module libresdr_b210 (
     wire reset_global = GPIF_CTL9;
     
     //LED wire
-    wire             PPS_LED;
-    wire             REF_LOCKED;
         
     
     wire LED_RX1;
@@ -272,8 +249,6 @@ end
     assign ext_ref = is10meg?sync_10M:PPS_IN_EXT;  //ref_sel high select 10MHz low select 1pps
  
     assign REF_CLK_REQ = 1'b1;
-    assign PPS_LED = lpps;
-    assign REF_LOCKED = ext_ref_locked;
     
    
     wire int_40mhz;
@@ -514,29 +489,7 @@ b205_ref_pll(
     );
 
 
-        assign             PPS_LED_inv          =   ~PPS_LED;
         assign             REF_LOCKED_inv       =   ~status; //ency check ok
-        assign             REF_IS_10M_detect_inv=   ~is10meg;  
-        
-        assign             LED_RX1_inv          =   ~LED_RX1;
-        assign             LED_RX2_inv          =   ~LED_RX2;
-        assign             LED_TXRX1_RX_inv     =   ~LED_TXRX1_RX;
-        assign             LED_TXRX1_TX_inv     =   ~LED_TXRX1_TX;
-        assign             LED_TXRX2_RX_inv     =   ~LED_TXRX2_RX;
-        assign             LED_TXRX2_TX_inv     =   ~LED_TXRX2_TX;
-        
-        
-        assign             LED_RX1_R = 1'b1;
-        assign             LED_RX1_B = 1'b1; 
-                         
-        assign             LED_RX2_R = 1'b1;  
-        assign             LED_RX2_B = 1'b1; 
-                         
-        assign             LED_TXRX1_B= 1'b1;   
-        assign             LED_TXRX2_B= 1'b1;
-        
-        assign             LED_USER_R = ~REF_LOCKED;
-        //assign             LED_USER_B = 1'b1;
         
         
         
