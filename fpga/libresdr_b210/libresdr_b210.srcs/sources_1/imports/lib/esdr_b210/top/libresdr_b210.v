@@ -36,12 +36,10 @@ module libresdr_b210 (
         output  wire	        GPIF_CTL7, // n_pktend
         input   wire	        GPIF_CTL4, // slfifo_flags[0]
         input   wire	        GPIF_CTL5, // slfifo_flags[1]
-        input   wire	        GPIF_CTL6, // Serial settings bus from FX3. SDA
-        input   wire	        GPIF_CTL8, // Serial settings bus from FX3. SCL
         output  wire	        GPIF_CTL11, // slfifo_addr[1]
         output  wire	        GPIF_CTL12, // slfifo_addr[0]
         inout   wire [31:0]     GPIF_D,
-        input   wire	        GPIF_CTL9, // global_reset
+        input   wire	        FPGA_RST_N, // board reset, active-low (pin G15)
         
         // UART
         // By default these provide an FX3 UART console output. Under compile time control they can alternatively
@@ -86,7 +84,7 @@ module libresdr_b210 (
         output 	wire            tx_enable2
     );
     
-    wire reset_global = GPIF_CTL9;
+    (* mark_debug = "true" *) wire reset_global = ~FPGA_RST_N;
     
     //LED wire
         
@@ -108,13 +106,13 @@ module libresdr_b210 (
 
     // Resets
 
-    wire bus_rst;
+    (* mark_debug = "true" *) wire bus_rst;
 
 
     ///////////////////////////////////////////////////////////////////////
     // generate clocks from always on codec main clk
     ///////////////////////////////////////////////////////////////////////
-    wire locked;
+    (* mark_debug = "true" *) wire locked;
     
  gen_clks u_gen_clocks_main
  (
@@ -144,7 +142,7 @@ module libresdr_b210 (
     wire refclk_locked_busclk;
 
     reg [15:0] clocks_ready_count;
-    reg clocks_ready;
+    (* mark_debug = "true" *) reg clocks_ready;
     always @(posedge bus_clk or posedge reset_global or negedge locked) begin
         if (reset_global | !locked) begin
             clocks_ready_count <= 16'b0;
@@ -160,7 +158,7 @@ module libresdr_b210 (
     // Create sync reset signals
     ///////////////////////////////////////////////////////////////////////
     
-    wire gpif_rst, radio_rst,ref_pll_rst;
+    (* mark_debug = "true" *) wire gpif_rst, radio_rst,ref_pll_rst;
     reset_sync radio_sync(.clk(radio_clk), .reset_in(!clocks_ready), .reset_out(radio_rst));
     reset_sync bus_sync(.clk(bus_clk), .reset_in(!clocks_ready), .reset_out(bus_rst));
     reset_sync ref_pll_sync(.clk(ref_pll_clk), .reset_in(!clocks_ready), .reset_out(ref_pll_rst));
@@ -327,8 +325,8 @@ b205_ref_pll(
     ///////////////////////////////////////////////////////////////////////
     wire [63:0] ctrl_tdata, resp_tdata, rx_tdata, tx_tdata;
     wire ctrl_tlast, resp_tlast, rx_tlast, tx_tlast;
-    wire ctrl_tvalid, resp_tvalid, rx_tvalid, tx_tvalid;
-    wire ctrl_tready, resp_tready, rx_tready, tx_tready;
+    (* mark_debug = "true" *) wire ctrl_tvalid, resp_tvalid, rx_tvalid, tx_tvalid;
+    (* mark_debug = "true" *) wire ctrl_tready, resp_tready, rx_tready, tx_tready;
 
     ///////////////////////////////////////////////////////////////////////
     // frontend assignments
@@ -391,7 +389,7 @@ b205_ref_pll(
         .rb_misc({31'b0, ext_ref_locked}), .misc_outs(misc_outs),
 
 
-        .debug_scl(GPIF_CTL8), .debug_sda(GPIF_CTL6),
+        .debug_scl(1'b1), .debug_sda(1'b1),
     `ifdef DEBUG_UART
             .debug_txd(FPGA_TXD0), .debug_rxd(FPGA_RXD0),
     `else
@@ -435,7 +433,7 @@ b205_ref_pll(
    gpif2_slave_fifo32 #(.DATA_RX_FIFO_SIZE(14), .DATA_TX_FIFO_SIZE(14)) slave_fifo32
    (
        .gpif_clk(gpif_clk), .gpif_rst(gpif_rst), .gpif_enb(1'b1),
-       .gpif_ctl({GPIF_CTL8, GPIF_CTL6, GPIF_CTL5, GPIF_CTL4}), .fifoadr({GPIF_CTL11,GPIF_CTL12}),
+       .gpif_ctl({2'b00, GPIF_CTL5, GPIF_CTL4}), .fifoadr({GPIF_CTL11,GPIF_CTL12}),
        .slwr(GPIF_CTL1), .sloe(GPIF_CTL2), .slcs(GPIF_CTL0), .slrd(GPIF_CTL3), .pktend(GPIF_CTL7),
        .gpif_d(GPIF_D),
 
