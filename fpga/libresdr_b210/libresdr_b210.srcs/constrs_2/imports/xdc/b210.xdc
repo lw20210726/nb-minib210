@@ -234,3 +234,12 @@ set_false_path -from [get_clocks CAT_DCLK_P] -to [get_clocks -of_objects [get_pi
 set_false_path -from [get_clocks CAT_DCLK_P] -to [get_clocks -of_objects [get_pins u_libresdr_b210_io/BUFR_inst/O]]
 set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT1]] -to [get_clocks CAT_DCLK_P]
 set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT2]] -to [get_clocks CAT_DCLK_P]
+
+# Keep auto-placed I/O OFF the AD9361 CMOS-unused _N clock/frame balls.
+# In CMOS these _N balls are hi-Z, but each is bridged to its _P partner by a
+# 100ohm LVDS-termination resistor. An unconstrained FPGA OUTPUT auto-placed on
+# DATA_CLK_N (K3) drove that ball and, through R23, clamped the AD9361's DATA_CLK
+# on DATA_CLK_P (L3) -> radio_clk dead -> register loopback timeout. Reserving the
+# four unused _N clock/frame balls fixed it (register loopback now passes).
+#   K3=DATA_CLK_N  G3=FB_CLK_N  B2=RX_FRAME_N  J1=TX_FRAME_N
+set_property PROHIBIT true [get_sites -of_objects [get_package_pins {K3 G3 B2 J1}]]
