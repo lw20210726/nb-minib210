@@ -243,6 +243,12 @@ set_false_path -from [get_clocks CAT_DCLK_P] -to [get_clocks -of_objects [get_pi
 set_false_path -from [get_clocks CAT_DCLK_P] -to [get_clocks -of_objects [get_pins u_libresdr_b210_io/BUFR_inst/O]]
 set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT1]] -to [get_clocks CAT_DCLK_P]
 set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mmcm_adv_inst/CLKOUT2]] -to [get_clocks CAT_DCLK_P]
+# Also false-path the DIVIDED (/2, MIMO) BUFR clock vs the 100MHz bus clock, both
+# directions. This pair is the ONLY timing violation; it crosses through the
+# async dual-clock sample FIFOs. The base xdc had the BUFR/O->bus direction
+# (dropped during the miniB210 adaptation); add both to fully cover it.
+set_false_path -from [get_clocks rx_clk_mimo_bufr] -to [get_clocks clk_out2_100_bus_gen_clks]
+set_false_path -from [get_clocks clk_out2_100_bus_gen_clks] -to [get_clocks rx_clk_mimo_bufr]
 
 # Keep auto-placed I/O OFF the AD9361 CMOS-unused _N clock/frame balls.
 # In CMOS these _N balls are hi-Z, but each is bridged to its _P partner by a
@@ -252,3 +258,68 @@ set_false_path -from [get_clocks -of_objects [get_pins u_gen_clocks_main/inst/mm
 # four unused _N clock/frame balls fixed it (register loopback now passes).
 #   K3=DATA_CLK_N  G3=FB_CLK_N  B2=RX_FRAME_N  J1=TX_FRAME_N
 set_property PROHIBIT true [get_sites -of_objects [get_package_pins {K3 G3 B2 J1}]]
+
+# Same precaution for the remaining AD9361 balls this design does NOT use: keep
+# auto-placed (unconstrained) FPGA outputs off them. AB3 is the AD9361 TEST pin
+# (must stay grounded for normal operation - a driven output here could put the
+# AD9361 into test mode); W2 = AD9361 CLK_OUT; F4 = AD9361 NC.
+# With all AD9361 balls now either constrained or prohibited, the remaining
+# unconstrained ports (B210 features absent on miniB210: RF switches, fp_gpio,
+# PPS, ext 10MHz, clock DAC, AD9361 CTRL) can still auto-place, but no longer
+# onto anything that breaks the radio. (The NSTD-1/UCIO-1 bitstream DRCs must
+# still be waived because those ports stay unplaced.)
+set_property PROHIBIT true [get_sites -of_objects [get_package_pins {AB3 W2 F4}]]
+
+# Debug UART (net RXD0/TXD0). Verified bank 13 VCCO = DVCC_3V3 -> LVCMOS33
+# (bank-13 VCCO balls AA17/AB14/V16/W13/Y10 all tie to DVCC_3V3 in netlist).
+set_property -dict {PACKAGE_PIN AA13 IOSTANDARD LVCMOS33} [get_ports FPGA_RXD0]
+set_property -dict {PACKAGE_PIN Y14  IOSTANDARD LVCMOS33} [get_ports FPGA_TXD0]
+
+# ============================================================================
+# Unused B210 ports parked on genuine NC balls (miniB210 lacks this hardware):
+# RF switches / front-panel GPIO / ext-ref / clock-DAC / AD9361 CTRL bus.
+# Every ball below is a true no-connect on the 0530 board (net = NC): outputs
+# drive nothing, inputs/inout get a PULLDOWN so they read a defined 0. This
+# constrains the last unconstrained ports so NSTD-1/UCIO-1 no longer fire ->
+# the bitstream generates with NO DRC waiver (GUI "Generate Bitstream" works).
+# Balls picked from 109 free NC LVCMOS18 balls; see fpga/ila_cap/ for derivation.
+# ============================================================================
+set_property -dict {PACKAGE_PIN A18 IOSTANDARD LVCMOS18} [get_ports {CAT_CTL_IN[0]}]
+set_property -dict {PACKAGE_PIN AA3 IOSTANDARD LVCMOS18} [get_ports {CAT_CTL_IN[1]}]
+set_property -dict {PACKAGE_PIN AA4 IOSTANDARD LVCMOS18} [get_ports {CAT_CTL_IN[2]}]
+set_property -dict {PACKAGE_PIN AA5 IOSTANDARD LVCMOS18} [get_ports {CAT_CTL_IN[3]}]
+set_property -dict {PACKAGE_PIN AA6 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[0]}]
+set_property -dict {PACKAGE_PIN AA8 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[1]}]
+set_property -dict {PACKAGE_PIN AB6 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[2]}]
+set_property -dict {PACKAGE_PIN AB7 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[3]}]
+set_property -dict {PACKAGE_PIN AB8 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[4]}]
+set_property -dict {PACKAGE_PIN C19 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[5]}]
+set_property -dict {PACKAGE_PIN D15 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[6]}]
+set_property -dict {PACKAGE_PIN D16 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CAT_CTL_OUT[7]}]
+set_property -dict {PACKAGE_PIN D17 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {CLKIN_10MHz}]
+set_property -dict {PACKAGE_PIN D19 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {PPS_IN_EXT}]
+set_property -dict {PACKAGE_PIN E13 IOSTANDARD LVCMOS18} [get_ports {REF_CLK_REQ}]
+set_property -dict {PACKAGE_PIN E14 IOSTANDARD LVCMOS18} [get_ports {CLK_40M_DAC_DIN}]
+set_property -dict {PACKAGE_PIN E16 IOSTANDARD LVCMOS18} [get_ports {CLK_40M_DAC_SCLK}]
+set_property -dict {PACKAGE_PIN E17 IOSTANDARD LVCMOS18} [get_ports {CLK_40M_DAC_nSYNC}]
+set_property -dict {PACKAGE_PIN E18 IOSTANDARD LVCMOS18} [get_ports {SFDX1_RX}]
+set_property -dict {PACKAGE_PIN F13 IOSTANDARD LVCMOS18} [get_ports {SFDX1_TX}]
+set_property -dict {PACKAGE_PIN F14 IOSTANDARD LVCMOS18} [get_ports {SFDX2_RX}]
+set_property -dict {PACKAGE_PIN F15 IOSTANDARD LVCMOS18} [get_ports {SFDX2_TX}]
+set_property -dict {PACKAGE_PIN F16 IOSTANDARD LVCMOS18} [get_ports {SRX1_RX}]
+set_property -dict {PACKAGE_PIN F18 IOSTANDARD LVCMOS18} [get_ports {SRX1_TX}]
+set_property -dict {PACKAGE_PIN F19 IOSTANDARD LVCMOS18} [get_ports {SRX2_RX}]
+set_property -dict {PACKAGE_PIN G13 IOSTANDARD LVCMOS18} [get_ports {SRX2_TX}]
+set_property -dict {PACKAGE_PIN G16 IOSTANDARD LVCMOS18} [get_ports {tx_enable1}]
+set_property -dict {PACKAGE_PIN G17 IOSTANDARD LVCMOS18} [get_ports {tx_enable2}]
+set_property -dict {PACKAGE_PIN G18 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[0]}]
+set_property -dict {PACKAGE_PIN G20 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[1]}]
+set_property -dict {PACKAGE_PIN G4  IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[2]}]
+set_property -dict {PACKAGE_PIN H13 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[3]}]
+set_property -dict {PACKAGE_PIN H14 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[4]}]
+set_property -dict {PACKAGE_PIN H15 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[5]}]
+set_property -dict {PACKAGE_PIN H17 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[6]}]
+set_property -dict {PACKAGE_PIN H18 IOSTANDARD LVCMOS18 PULLTYPE PULLDOWN} [get_ports {fp_gpio[7]}]
+
+# All other un-instantiated balls default to a safe pulldown (proper practice).
+set_property BITSTREAM.CONFIG.UNUSEDPIN Pulldown [current_design]
