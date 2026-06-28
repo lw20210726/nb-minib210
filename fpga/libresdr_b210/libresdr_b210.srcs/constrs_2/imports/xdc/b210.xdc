@@ -2,10 +2,19 @@
 ## Auto-generated from pstxnet.dat. Only FX3<->FPGA + clock + reset constrained.
 ## AD9361/RF pins intentionally left unconstrained (auto-placed) for this GPIF bring-up test.
 
-# --- main clock: 40MHz TCXO -> FPGA W19 (bank14, 3.3V, clock-capable MRCC) ---
-#     CORRECTED per new netlist NB2026_0530 (old wrong schematic said V18; V18 is actually LCD_B1).
-#     Verified alive: W19 MMCM LOCKED=1 in the clktest diagnostic.
+# ============================================================================
+# main clock: 40MHz TCXO -> FPGA.  *** TWO BOARD VARIANTS - pick exactly ONE ***
+#   - 0530 board (NB2026_0530): clock on W19  (V18 = LCD_B1 here)  <-- DEFAULT, active
+#   - 0402 board (NB20260402) : clock on V18  (W19 = LCD_B1 here)  <-- commented out
+# The two boards simply swap W19 <-> V18. To build for the 0402 board, comment out
+# the W19 line below and uncomment the V18 line. Both are bank14 3.3V clock-capable
+# (W19 = MRCC, V18 = SRCC). Verified: W19 MMCM LOCKED=1 in the clktest diagnostic.
+# (Replaces the old 'board_0402' branch - no need to maintain a separate branch.)
+# ============================================================================
+# -- 0530 board (default):
 set_property -dict {PACKAGE_PIN W19 IOSTANDARD LVCMOS33} [get_ports CLK_40MHz_FPGA]
+# -- 0402 board (uncomment the next line AND comment out the W19 line above):
+#set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports CLK_40MHz_FPGA]
 # (input clock constrained by gen_clks IP in-context xdc)
 
 # --- FPGA_RST_N -> G15: this net is DANGLING/floating on the real board (no driver/pull).
