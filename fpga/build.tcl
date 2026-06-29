@@ -68,17 +68,33 @@ set_property is_enabled false [get_files clk_v18.xdc]
 set_property is_enabled true  [get_files clk_${clk}.xdc]
 puts "enabled clock constraint: clk_${clk}.xdc"
 
-# ---- set device, regenerate IP if the part changed --------------------------
+# ---- set device, then reconcile EVERY IP to that part -----------------------
+# 关键点：工程 part 与「IP 定制时记录的 part」必须一致，否则 IP 被 locked，
+# OOC 综合不会启动，顶层 synth 报 "module 'xxx' not found"。
+# 只比较工程 part 是不够的——上一次构建可能把 IP 定到了另一个器件，而工程 part
+# 看起来没变。所以这里每次都：① 设工程 part；② 找出锁定的 IP（多为 part 不符
+# 或 clean 删过 .gen）→ upgrade_ip 解锁并按当前 part 重定制 → 复位其失败的 OOC
+# run；③ 对所有 IP 生成输出产物（已最新者 Vivado 自动跳过，不浪费时间）。
 set cur_part [get_property part [current_project]]
-if {$cur_part ne $part} {
-    puts "switching part: $cur_part -> $part  (regenerating IP output products)"
-    set_property part $part [current_project]
-    foreach ip [get_ips] {
-        reset_target   -quiet all $ip
-        generate_target -quiet all $ip
+puts "project part: $cur_part -> $part"
+set_property part $part [current_project]
+
+set ips [get_ips -quiet]
+if {[llength $ips] > 0} {
+    set locked {}
+    foreach ip $ips {
+        if {[get_property IS_LOCKED $ip]} { lappend locked $ip }
     }
-} else {
-    puts "part unchanged: $part"
+    if {[llength $locked] > 0} {
+        puts "re-targeting locked IP(s) to $part: $locked"
+        upgrade_ip -quiet $locked
+        foreach ip $locked {
+            set r [get_runs -quiet ${ip}_synth_1]
+            if {[llength $r] > 0} { reset_run $r }
+        }
+    }
+    puts "generating IP output products ([llength $ips] IP) ..."
+    generate_target -quiet all [get_ips -quiet]
 }
 
 # ---- synth -> impl -> bitstream ---------------------------------------------

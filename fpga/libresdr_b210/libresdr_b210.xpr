@@ -89,17 +89,17 @@
   <FileSets Version="1" Minor="32">
     <FileSet Name="sources_1" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
       <Filter Type="Srcs"/>
-      <File Path="$PSRCDIR/sources_1/imports/lib/ngc/hbdec2.ngc">
+      <File Path="$PSRCDIR/sources_1/imports/lib/ngc/hbdec2.edif">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../../workspace/SDR/usrp/myusrp/b210/lib/ngc/hbdec2.ngc"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../../../workspace/SDR/usrp/myusrp/b210/lib/ngc/hbdec2.edif"/>
           <Attr Name="ImportTime" Val="1715861208"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/imports/lib/ngc/hbdec1.ngc">
+      <File Path="$PSRCDIR/sources_1/imports/lib/ngc/hbdec1.edif">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../../workspace/SDR/usrp/myusrp/b210/lib/ngc/hbdec1.ngc"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../../../workspace/SDR/usrp/myusrp/b210/lib/ngc/hbdec1.edif"/>
           <Attr Name="ImportTime" Val="1715861208"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
