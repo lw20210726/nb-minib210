@@ -23,3 +23,6 @@ vivado*.backup.log
 
 # --- archive_project 生成的摘要 ---
 archive_project_summary.txt
+
+# --- build.tcl 输出的 bitstream（可再生）---
+build/

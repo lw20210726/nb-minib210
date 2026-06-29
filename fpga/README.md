@@ -12,9 +12,10 @@ FPGA 工程来自 [lmesserStep/LibreSDRB210](https://github.com/lmesserStep/Libr
 
 针对仿制板做了最小化适配，便于日后跟上游对比：
 
-1. **40MHz 主时钟引脚** — `b210.xdc` 里合并了两版板的变体：
-   - `0530` 板（NB2026_0530）：时钟在 **W19**（默认，active）
-   - `0402` 板（NB20260402）：时钟在 **V18**（注释备选；换板时取消注释 V18 行、注释掉 W19 行）
+1. **40MHz 主时钟引脚** — 抽成独立的时钟变体约束（见下方「构建」）：
+   - **W19** → `clk_w19.xdc`：20260530 板
+   - **V18** → `clk_v18.xdc`：所有 202604xx 板（0402/0407…）
+   主 `b210.xdc` 不再硬编码时钟脚；由 `build.tcl`（或 GUI 里手动 Enable）二选一启用。
    > 注：另一颗球在对应板上是 `LCD_B1`（FPC 预留线，FPGA 侧无逻辑）。
 
 2. **AD9361 数据口 = CMOS**（非 LVDS）。与 UHD b200 驱动写入的寄存器配置一致
@@ -41,13 +42,45 @@ FPGA 工程来自 [lmesserStep/LibreSDRB210](https://github.com/lmesserStep/Libr
 
 ## 构建
 
-用 Vivado 2024.1 打开 `libresdr_b210/libresdr_b210.xpr`，综合 → 实现 → 生成 Bitstream。
-得到 `.bit` 后转出 `.bin`（或在生成时一并产出），加载方式见下。
+### 推荐：批处理 `build.tcl`（多配置一键出 bin）
 
-加载到板上（通过 UHD 的 `fpga=` 设备参数）：
+板子有两个**正交**的差异维度，用一个脚本参数化，免去手点 GUI：
+
+| 维度 | 取值 | 差异 |
+|---|---|---|
+| **时钟变体** `<clk>` | `w19` / `v18` | 40MHz TCXO 落在哪颗球——**唯一的 PCB 差异**。`w19`=20260530 板；`v18`=所有 202604xx 板（0402/0407…） |
+| **器件** `<dev>` | `100t` / `200t` | `100t`=`xc7a100tfgg484-2`；`200t`=`xc7a200tfbg484-2`（484 球封装引脚兼容，约束不变） |
+
+> 为什么按**时钟脚**而不是板号命名？因为 0402/0407 这些 202604xx 板都是 V18，板号会越列越多，
+> 但真正决定 bitstream 的只有那根时钟脚。按脚分 profile，将来再出个同为 V18 的新板，直接复用 `v18`。
+>
+> 注意：板型差异是**引脚**（XDC），不是 RTL，所以**不能用 Verilog `` `ifdef `` ——
+> XDC 不经预处理器。脚本通过启用对应的 `clk_w19.xdc` / `clk_v18.xdc` 来切换。
 
 ```bash
-uhd_usrp_probe --args="type=b200,fpga=/tmp/libresdr_b210.bin"
+# 语法： vivado -mode batch -source fpga/build.tcl -tclargs <clk> <dev> [jobs]
+vivado -mode batch -source fpga/build.tcl -tclargs w19 100t       # 0530 板 / 100T
+vivado -mode batch -source fpga/build.tcl -tclargs v18 200t 12    # 0402/0407 板 / 200T，12 并行
+```
+
+脚本会：选 part、启用对应时钟 xdc、（换 part 时）自动重生成 IP、综合→实现→出 bitstream，
+输出到 `fpga/build/libresdr_b210_<clk>_<dev>.bit` 和 `.bin`。
+
+> 所有 IP 均为软核（`clk_wiz`/`gen_clks`/`fifo_*`/`vio`），无 MIG/DDR 等器件专属硬 IP，
+> 故 100t↔200t 换 part 干净，脚本里 `generate_target` 会自动按新 part 重生成。
+
+### GUI 方式
+
+用 Vivado 2024.1 打开 `libresdr_b210/libresdr_b210.xpr`。时钟脚已从主 `b210.xdc` 抽出到
+`clk_w19.xdc` / `clk_v18.xdc`：在 **Sources > Constraints** 里**只启用**与你板子匹配的那一个
+（右键 → Enable/Disable File），再综合 → 实现 → 生成 Bitstream。
+
+### 加载到板上
+
+通过 UHD 的 `fpga=` 设备参数：
+
+```bash
+uhd_usrp_probe --args="type=b200,fpga=fpga/build/libresdr_b210_w19_100t.bin"
 ```
 
 ## 验收状态

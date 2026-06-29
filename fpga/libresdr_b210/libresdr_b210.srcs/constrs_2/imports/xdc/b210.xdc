@@ -3,19 +3,16 @@
 ## AD9361/RF pins intentionally left unconstrained (auto-placed) for this GPIF bring-up test.
 
 # ============================================================================
-# main clock: 40MHz TCXO -> FPGA.  *** TWO BOARD VARIANTS - pick exactly ONE ***
-#   - 0530 board (NB2026_0530): clock on W19  (V18 = LCD_B1 here)  <-- DEFAULT, active
-#   - 0402 board (NB20260402) : clock on V18  (W19 = LCD_B1 here)  <-- commented out
-# The two boards simply swap W19 <-> V18. To build for the 0402 board, comment out
-# the W19 line below and uncomment the V18 line. Both are bank14 3.3V clock-capable
-# (W19 = MRCC, V18 = SRCC). Verified: W19 MMCM LOCKED=1 in the clktest diagnostic.
-# (Replaces the old 'board_0402' branch - no need to maintain a separate branch.)
+# main clock: 40MHz TCXO -> FPGA.  *** THE PACKAGE_PIN IS NOT HERE ***
+# The only PCB difference between board variants is which ball carries this clock:
+#   - clk_w19.xdc : W19 (MRCC) -- 20260530 board                 [CLK_W19_20260530]
+#   - clk_v18.xdc : V18 (SRCC) -- all 202604xx boards (0402/0407) [CLK_V18_202604xx]
+# (on each board the *other* ball is LCD_B1, an FPC line with no FPGA logic.)
+#
+# build.tcl enables exactly one clk_*.xdc per build (see fpga/build.tcl / README).
+# GUI users: in Sources > Constraints, enable the clk_*.xdc matching your board.
+# The clock TIMING (create_clock) lives in the gen_clks IP in-context xdc.
 # ============================================================================
-# -- 0530 board (default):
-set_property -dict {PACKAGE_PIN W19 IOSTANDARD LVCMOS33} [get_ports CLK_40MHz_FPGA]
-# -- 0402 board (uncomment the next line AND comment out the W19 line above):
-#set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports CLK_40MHz_FPGA]
-# (input clock constrained by gen_clks IP in-context xdc)
 
 # --- FPGA_RST_N -> G15: this net is DANGLING/floating on the real board (no driver/pull).
 #     Add an internal pull-up so G15 reads high => reset_global = ~G15 = 0 (deasserted).

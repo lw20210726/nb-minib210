@@ -1032,6 +1032,19 @@
           <Attr Name="UsedIn" Val="implementation"/>
         </FileInfo>
       </File>
+      <File Path="$PSRCDIR/constrs_2/imports/xdc/clk_w19.xdc">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PSRCDIR/constrs_2/imports/xdc/clk_v18.xdc">
+        <FileInfo>
+          <Attr Name="IsEnabled" Val="0"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+        </FileInfo>
+      </File>
       <Config>
         <Option Name="TargetConstrsFile" Val="$PSRCDIR/constrs_2/imports/xdc/b210.xdc"/>
         <Option Name="ConstrsType" Val="XDC"/>
