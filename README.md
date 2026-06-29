@@ -40,4 +40,3 @@ nb-minib210/
 - [x] `fpga`：基于 LibreSDRB210 适配 miniB210（时钟引脚、AD9361 CMOS 接口、约束收尾），
   已通过 `uhd_usrp_probe` 与 benchmark/稳定性验收。详见 [`fpga/README.md`](fpga/README.md)。
 - [x] `testkit`：板级验收测试套件，方便群友自测自己的板。详见 [`testkit/README.md`](testkit/README.md)。
-- [ ] 针对仿制板的固件改动（进行中 / 待开始）。
