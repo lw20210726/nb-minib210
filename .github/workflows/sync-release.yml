@@ -1,11 +1,43 @@
 name: Sync Upstream Release
 on: workflow_dispatch
+env:
+  UPSTREAM: jeffcaiz/nb-minib210
+  MINE: lw20210726/nb-minib210
 jobs:
-  sync:
+  sync_tags_and_release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Sync Release & Tags
-        uses: xixuangezu/sync-fork-release-wiki@main
-        with:
-          upstream_repo: jeffcaiz/nb-minib210
+      - name: Checkout self repo
+        uses: actions/checkout@v4
+
+      - name: Install gh cli
+        run: sudo apt install gh -y
+
+      - name: Login github
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: gh auth login --with-token <<< "$GH_TOKEN"
+
+      - name: Sync all tags
+        run: |
+          git remote add upstream https://github.com/${{ env.UPSTREAM }}
+          git fetch upstream --tags
+          git push origin --tags
+
+      - name: Copy all releases
+        run: |
+          mkdir assets
+          tags=$(gh release list -R ${{ env.UPSTREAM }} --limit 200 --json tagName -q '.[].tagName')
+          for tag in $tags; do
+            echo "Processing $tag"
+            gh release download "$tag" -R ${{ env.UPSTREAM }} -D ./assets --clobber
+            title=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json name -q .name)
+            body=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json body -q .body)
+            pre=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json isPrerelease -q .isPrerelease)
+            cmd="gh release create '$tag' ./assets/* -R ${{ env.MINE }} --title '$title' --notes '$body'"
+            if [ "$pre" = "true" ]; then
+              cmd+=" --prerelease"
+            fi
+            eval "$cmd"
+            rm -rf ./assets/*
+          done
