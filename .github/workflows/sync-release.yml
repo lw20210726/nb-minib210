@@ -11,33 +11,42 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install gh cli
-        run: sudo apt install gh -y
+        run: |
+          sudo apt update
+          sudo apt install gh -y
+          gh --version
 
-      - name: Login github
+      - name: Login github with PAT
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: gh auth login --with-token <<< "$GH_TOKEN"
+        run: |
+          gh auth login --with-token <<< "$GH_TOKEN"
+          gh api user -q .login
 
-      - name: Sync all tags
+      - name: Sync all tags from upstream
         run: |
           git remote add upstream https://github.com/${{ env.UPSTREAM }}
           git fetch upstream --tags
           git push origin --tags
+          echo "===== 标签同步完成 ====="
 
       - name: Copy all releases
         run: |
-          mkdir assets
+          mkdir -p assets
           tags=$(gh release list -R ${{ env.UPSTREAM }} --limit 200 --json tagName -q '.[].tagName')
+          echo "待迁移版本列表：$tags"
           for tag in $tags; do
-            echo "Processing $tag"
+            echo "==================== 开始处理 $tag ===================="
             gh release download "$tag" -R ${{ env.UPSTREAM }} -D ./assets --clobber
             title=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json name -q .name)
             body=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json body -q .body)
             pre=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json isPrerelease -q .isPrerelease)
-            cmd="gh release create '$tag' ./assets/* -R ${{ env.MINE }} --title '$title' --notes '$body'"
+            echo "版本标题：$title"
+            ARGS=("$tag" "./assets/*" "-R" "${{ env.MINE }}" "--title" "$title" "--notes" "$body")
             if [ "$pre" = "true" ]; then
-              cmd+=" --prerelease"
+              ARGS+=("--prerelease")
             fi
-            eval "$cmd"
+            gh release create "${ARGS[@]}"
             rm -rf ./assets/*
           done
+          echo "全部Release迁移完毕"
