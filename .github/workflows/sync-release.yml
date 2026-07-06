@@ -7,46 +7,62 @@ jobs:
   sync_tags_and_release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout self repo
+      - name: 拉取当前仓库代码
         uses: actions/checkout@v4
 
-      - name: Install gh cli
+      - name: 安装GitHub CLI
         run: |
-          sudo apt update
+          sudo apt update -y
           sudo apt install gh -y
           gh --version
 
-      - name: Login github with PAT
+      - name: 使用PAT登录gh
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           gh auth login --with-token <<< "$GH_TOKEN"
-          gh api user -q .login
+          gh api user
+          echo "登录验证成功"
 
-      - name: Sync all tags from upstream
+      - name: 同步上游所有Tag
         run: |
-          git remote add upstream https://github.com/${{ env.UPSTREAM }}
+          git remote add upstream https://github.com/${{ env.UPSTREAM }}.git
           git fetch upstream --tags
-          git push origin --tags
-          echo "===== 标签同步完成 ====="
+          git push origin --tags --force-with-lease
+          echo "标签同步完成"
 
-      - name: Copy all releases
+      - name: 批量复制Release（无eval，规避特殊字符崩溃）
         run: |
-          mkdir -p assets
-          tags=$(gh release list -R ${{ env.UPSTREAM }} --limit 200 --json tagName -q '.[].tagName')
-          echo "待迁移版本列表：$tags"
-          for tag in $tags; do
-            echo "==================== 开始处理 $tag ===================="
+          mkdir -p ./assets
+          # 获取所有release tag列表
+          TAGS=$(gh release list -R ${{ env.UPSTREAM }} --limit 200 --json tagName -q '.[].tagName')
+          echo "待迁移版本: $TAGS"
+
+          for tag in $TAGS; do
+            echo "===== 处理 $tag ====="
+            # 下载当前版本附件
             gh release download "$tag" -R ${{ env.UPSTREAM }} -D ./assets --clobber
-            title=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json name -q .name)
-            body=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json body -q .body)
-            pre=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json isPrerelease -q .isPrerelease)
-            echo "版本标题：$title"
-            ARGS=("$tag" "./assets/*" "-R" "${{ env.MINE }}" "--title" "$title" "--notes" "$body")
-            if [ "$pre" = "true" ]; then
+
+            # 获取release信息
+            TITLE=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json name -q .name)
+            BODY=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json body -q .body)
+            IS_PRE=$(gh release view "$tag" -R ${{ env.UPSTREAM }} --json isPrerelease -q .isPrerelease)
+
+            # 组装参数数组，避免引号解析错误
+            ARGS=(
+              "create"
+              "$tag"
+              "./assets/*"
+              "-R" "${{ env.MINE }}"
+              "--title" "$TITLE"
+              "--notes" "$BODY"
+            )
+            if [ "$IS_PRE" = "true" ]; then
               ARGS+=("--prerelease")
             fi
-            gh release create "${ARGS[@]}"
+
+            # 创建release
+            gh "${ARGS[@]}"
             rm -rf ./assets/*
           done
-          echo "全部Release迁移完毕"
+          echo "全部Release迁移完成"
