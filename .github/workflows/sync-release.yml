@@ -1,0 +1,11 @@
+name: Sync Upstream Release
+on: workflow_dispatch
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync Release & Tags
+        uses: xixuangezu/sync-fork-release-wiki@main
+        with:
+          upstream_repo: jeffcaiz/nb-minib210
